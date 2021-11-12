@@ -302,7 +302,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 156160933}
@@ -386,7 +386,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.457, z: -2}
+  m_LocalPosition: {x: 0, y: 4.067, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1794196144}
@@ -626,13 +626,33 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1772947696}
     m_Modifications:
+    - target: {fileID: 3097605475776620007, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
+      propertyPath: Damping.y
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 3610865957024025864, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: gravity
-      value: 4
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3610865957024025864, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: moveSpeed
       value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3610865957024025864, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
+      propertyPath: sprintSpeed
+      value: 7.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3610865957024025864, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
+      propertyPath: jumpVelocity
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3610865957024025864, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
+      propertyPath: cameraTopAngle
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 3610865957024025864, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
+      propertyPath: cameraRotationMax
+      value: 340
       objectReference: {fileID: 0}
     - target: {fileID: 3610865957024025866, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_Name
@@ -648,7 +668,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3610865957024025867, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.1
+      value: 2.71
       objectReference: {fileID: 0}
     - target: {fileID: 3610865957024025867, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -688,15 +708,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4093637773364246549, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.357
+      value: 1.3569999
       objectReference: {fileID: 0}
     - target: {fileID: 4093637773364246549, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2
+      value: -4
       objectReference: {fileID: 0}
     - target: {fileID: 4529836882821511338, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_Name
       value: YBot Model
+      objectReference: {fileID: 0}
+    - target: {fileID: 4826158392639851349, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
+      propertyPath: m_Transitions.m_InheritPosition
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6184478588284367316, guid: c193e0f653dbace4faff86d831b93c5e, type: 3}
       propertyPath: m_IsActive

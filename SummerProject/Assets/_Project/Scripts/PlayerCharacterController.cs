@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,13 +6,29 @@ using UnityEngine.InputSystem;
 
 public class PlayerCharacterController : MonoBehaviour
 {
-    [SerializeField] public float moveSpeed = 1f;
+    [Header("Movement")] [SerializeField] public float moveSpeed = 1f;
     [SerializeField] public float sprintSpeed = 1.5f;
+    [SerializeField] public float maxGravity = -9.81f;
     [SerializeField] public float gravity = 1f;
-    [SerializeField] public const float groundedGravity = 0.05f;
-    [Range(0,1)] 
-    [SerializeField] public float playerRotationSpeed = 1f;
-    [SerializeField] public float cameraRotationSpeed = 1f;
+    [SerializeField] public float groundedGravity = 0.01f;
+    [SerializeField] public float jumpVelocity = 5f;
+    [Range(0, 1)] [SerializeField] public float playerRotationSpeed = 1f;
+
+    [Header("Camera")] [SerializeField] public float cameraRotationSpeed = 1f;
+    [Range(0, 90)] [SerializeField] public float cameraTopAngle = 45f;
+    [Range(0, 90)] [SerializeField] public float cameraBottomAngle = 45;
+
+    private float CameraTopAngle
+    {
+        get => 90 - cameraTopAngle;
+        set => cameraTopAngle = value + 90;
+    }
+
+    private float CameraBottomAngle
+    {
+        get => 270 + cameraBottomAngle;
+        set => cameraBottomAngle = value - 270;
+    }
 
     private PlayerInput _playerInput;
     private CharacterController _controller;
@@ -21,12 +38,14 @@ public class PlayerCharacterController : MonoBehaviour
 
     private Vector2 currMovementInput;
     private Vector3 currMovement;
-    private float currVelocity;
+    private float currMovementY;
+    private float currHorizontalVelocity;
     private bool isMovementPressed;
 
     private Vector2 currCameraInput;
 
     private bool isSprinting;
+    private bool isJumpPressed;
 
     private int velocityAnimHash;
 
@@ -43,20 +62,20 @@ public class PlayerCharacterController : MonoBehaviour
         _cameraTarget = GameObject.Find("Camera Follow Target");
 
         // Setup input system
-        _playerInput.PlayerControls.Movement.started += OnMovementInput;
-        _playerInput.PlayerControls.Movement.canceled += OnMovementInput;
-        _playerInput.PlayerControls.Movement.performed += OnMovementInput;
-
-        _playerInput.PlayerControls.Camera.started += OnCameraInput;
-        _playerInput.PlayerControls.Camera.canceled += OnCameraInput;
-        _playerInput.PlayerControls.Camera.performed += OnCameraInput;
-
-        _playerInput.PlayerControls.Sprint.started += OnCameraInput;
-        _playerInput.PlayerControls.Sprint.canceled += OnCameraInput;
-        _playerInput.PlayerControls.Sprint.performed += OnCameraInput;
+        InitInputAction(_playerInput.PlayerControls.Movement, OnMovementInput);
+        InitInputAction(_playerInput.PlayerControls.Camera, OnCameraInput);
+        InitInputAction(_playerInput.PlayerControls.Sprint, OnSprintInput);
+        InitInputAction(_playerInput.PlayerControls.Jump, OnJumpInput);
 
         // Setup animation hashes
         velocityAnimHash = Animator.StringToHash("Velocity");
+    }
+
+    private void InitInputAction(InputAction action, Action<InputAction.CallbackContext> callback)
+    {
+        action.started += callback;
+        action.canceled += callback;
+        action.performed += callback;
     }
 
     private void OnMovementInput(InputAction.CallbackContext context)
@@ -76,29 +95,60 @@ public class PlayerCharacterController : MonoBehaviour
 
     private void OnSprintInput(InputAction.CallbackContext context)
     {
-        isSprinting = context.ReadValue<bool>() || isSprinting;
+        isSprinting = context.ReadValue<float>() > 0.5 || isSprinting;
+    }
+
+    private void OnJumpInput(InputAction.CallbackContext context)
+    {
+        isJumpPressed = context.ReadValue<float>() > 0.5;
     }
 
     void Update()
     {
         ProcessCamera();
-        ProcessMovement(Time.deltaTime);
         ProcessDirection();
+        ProcessMovement(Time.deltaTime);
         ProcessAnimation();
     }
-    
+
+    private void ProcessCamera()
+    {
+        _cameraTarget.transform.rotation *= Quaternion.AngleAxis(currCameraInput.x * cameraRotationSpeed, Vector3.up);
+        _cameraTarget.transform.rotation *= Quaternion.AngleAxis(currCameraInput.y * cameraRotationSpeed, Vector3.right);
+
+        // Clamp the camera vertically 
+        var angles = _cameraTarget.transform.localEulerAngles;
+        angles.x =  angles.x > 180 && angles.x < CameraBottomAngle ? CameraBottomAngle :
+            angles.x < 180 && angles.x > CameraTopAngle  ? CameraTopAngle :
+            angles.x;
+        angles.z = 0;
+
+        _cameraTarget.transform.localEulerAngles = angles;
+    }
+
     private void ProcessMovement(float deltaTime)
     {
-        currVelocity = currMovement.magnitude;
+        currHorizontalVelocity = currMovement.magnitude;
+        if (currHorizontalVelocity <= 0)
+            isSprinting = false;
 
         var move = isSprinting ? currMovement * sprintSpeed : currMovement * moveSpeed;
+        move.y = currMovementY;
 
         if (_controller.isGrounded)
-            move.y -= groundedGravity;
+        {
+            if (isJumpPressed && move.y <= 0)
+            {
+                move.y += jumpVelocity;
+            }
+            else
+                move.y = -groundedGravity;
+        }
         else
-            move.y -= gravity;
+            move.y -= move.y < maxGravity ? 0 : gravity;
 
         _controller.Move(move * deltaTime);
+        currMovementY = move.y;
     }
 
     private void ProcessDirection()
@@ -117,21 +167,7 @@ public class PlayerCharacterController : MonoBehaviour
 
     private void ProcessAnimation()
     {
-        _animator.SetFloat(velocityAnimHash, currVelocity);
+        _animator.SetFloat(velocityAnimHash, currHorizontalVelocity);
     }
 
-    private void ProcessCamera()
-    {
-        _cameraTarget.transform.rotation *= Quaternion.AngleAxis(currCameraInput.x * cameraRotationSpeed, Vector3.up);
-        _cameraTarget.transform.rotation *= Quaternion.AngleAxis(currCameraInput.y * cameraRotationSpeed, Vector3.right);
-
-        // Clamp the camera vertically 
-        var angles = _cameraTarget.transform.localEulerAngles;
-        angles.x =  angles.x > 180 && angles.x < 340 ? 340 :
-                    angles.x < 180 && angles.x > 40  ? 40 :
-                    angles.x;
-        angles.z = 0;
-        
-        _cameraTarget.transform.localEulerAngles = angles;
-    }
 }
